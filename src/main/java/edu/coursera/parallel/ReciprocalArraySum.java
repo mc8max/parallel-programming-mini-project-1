@@ -84,7 +84,7 @@ public final class ReciprocalArraySum {
 	 */
 	private static class ReciprocalArraySumTask extends RecursiveAction {
 		
-		private static final int SIZE_THRESHOLD = Integer.MAX_VALUE;
+		private static final int SIZE_THRESHOLD = 50000;
 		
 		/**
 		 * Starting index for traversal done by this task.
@@ -129,6 +129,20 @@ public final class ReciprocalArraySum {
 
 		@Override
 		protected void compute() {
+			if (endIndexExclusive - startIndexInclusive <= SIZE_THRESHOLD) {
+				computeDirectly();
+			} else {
+				int mid = (startIndexInclusive + endIndexExclusive) / 2;
+				ReciprocalArraySumTask left = new ReciprocalArraySumTask(startIndexInclusive, mid, input);
+				ReciprocalArraySumTask right = new ReciprocalArraySumTask(mid, endIndexExclusive, input);
+				left.fork();
+				right.compute();
+				left.join();
+				value = left.getValue() + right.getValue();
+			}
+		}
+		
+		protected void computeDirectly() {
 			value = 0;
 			for (int i = startIndexInclusive; i < endIndexExclusive; i++) {
 				value += 1 / input[i];
